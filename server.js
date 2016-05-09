@@ -3,7 +3,7 @@
 var express = require('express'),
     mongo = require('mongoskin'),
     routes = require('./app/routes/index.js'),
-    shortener = require('./app/controllers/shortener.js'),
+    getter = require('./app/controllers/getter.js'),
     http = require('http');
     
 var app = express();
@@ -20,7 +20,7 @@ db.createCollection("urls", {
 });
 
 routes(app, db);
-shortener(app, db);
+getter(app, db);
 
 var port = Number(process.env.PORT || 8080);
 app.listen(port, function () {
