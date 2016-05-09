@@ -8,7 +8,7 @@ var express = require('express'),
     
 var app = express();
 
-var db = mongo.db(process.env.MONGODB_URI || 'mongodb://tester:testerpass@ds017672.mlab.com:17672/short-url')
+var db = mongo.db(process.env.MONGODB_URI || 'mongodb://USER:PASS@etc....')
 
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use('/controllers', express.static(process.cwd() + '/app/controllers'));
