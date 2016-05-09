@@ -1,0 +1,10 @@
+
+body {
+    background-color: #777;
+}
+
+#simpleText {
+    margin-top:20px;
+    color: white;
+    font-family: 'Roboto Condensed', sans-serif;
+}
