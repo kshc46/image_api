@@ -1,11 +1,13 @@
 'use strict';
 
 function getter(app, db){
-    var imageCollection = db.collection('imageCollection');
     var searchCollection = db.collection('searchCollection');
     var pass = require(process.cwd() + '/public/pass.js');
-        
+
     app.get('/api/imagesearch/', imageAPICall);
+    app.get('/search/', searchHistory);
+    
+    var request = require('request');
     
     //Calls API with client-specified query to get JSON from Google Custom Search (only images)
     function imageAPICall(req,res){
@@ -19,10 +21,13 @@ function getter(app, db){
         }
         
         searchAdd(req,res,query);
-        $.getJSON("https://www.googleapis.com/customsearch/v1?key=" + password[0] + "&cx=" + password[1] + "&searchType=image&q=" + query + "&start=" + offset, function(data) {
-            write(req,res,data);
+        request("https://www.googleapis.com/customsearch/v1?key=" + password[0] + "&cx=" + password[1] + "&searchType=image&q=" + query + "&start=" + offset, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var data = JSON.parse(body);
+                write(req,res,data);
+            }
         });
-    };
+    }
     
     //Get parameters from URL, http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
     function getParameterByName(req, res, name) {
@@ -35,37 +40,52 @@ function getter(app, db){
         return decodeURIComponent(results[2].replace(/\+/g, " "));
     }
     
-    //Write image results to DB, then print that shizzle
+    //Write the items to a variable, then display on screen
     function write(req,res,data){
         //First, delete
-        imageCollection.remove({});
+        var final = [];
+        var entry;
         for (var each in data.items) {
-            imageCollection.insert({link: data.items[each].link, title: data.items[each].title, context: data.items[each].image.contextLink})
+            entry = {link: data.items[each].link, title: data.items[each].title, context: data.items[each].image.contextLink};
+            final[each] = entry;
         }
-        res.send(imageCollection);
+        res.send(final);
     }
     
     //Write search to DB
     function searchAdd(req,res,query){
         var date = new Date();
-        searchCollection.update(
-           { _id: 1 },
-           {
-             $push: {
-                search: {
-                   $each: [ {term: query, when: date.toUTCString()} ],
-                   $position: 0
-                }
-             }
-           }
-        )
-        searchCollection.find({_id : 1}).toArray(function(err,data){
+        searchCollection.insert({type: 'search', term: query, when: date.toUTCString()});
+       
+        searchCollection.find({type : 'search'}).toArray(function(err,data){
             if (err) {
                 console.log("Error: ", err)
             };
-            if (data.search.length > 10) {
-                dbPop();
+            var count = 0;
+            for (var each in data) {
+                count++;
             }
+            
+            if (count > 10) {
+                //Pop an entry
+            }
+            console.log(data)
+            /*if (data.search[10]) {
+                dbPop();
+            }*/
+        })
+    }
+    
+    //Display search history
+    function searchHistory(){
+        searchCollection.find({type : 'search'}).toArray(function(err,data){
+            if (err) {
+                console.log("Error: ", err)
+            };
+            console.log(data)
+            /*if (data.search[10]) {
+                dbPop();
+            }*/
         })
     }
     
@@ -74,7 +94,7 @@ function getter(app, db){
         searchCollection.update( { _id: 1 }, { $pop: { search: 9 } } ) // or search : 1???
     }
 
-    
+    //Checks for entries to search db, if nothing it initializes
     
 }
 
