@@ -5,26 +5,28 @@ function getter(app, db){
     var searchCollection = db.collection('searchCollection');
     var pass = require(process.cwd() + '/public/pass.js');
         
-    app.get('/api/imagesearch/:URLarg*', getParameterByName);
+    app.get('/api/imagesearch/', imageAPICall);
     
-    function imageAPICall(){
+    //Calls API with client-specified query to get JSON from Google Custom Search (only images)
+    function imageAPICall(req,res){
         var password = pass();
-        var offset = getParameterByName('offset');
-        var query = getParameterByName('search');
-        searchAdd(query)
+        var offset = getParameterByName(req,res,'offset');
+        var query = getParameterByName(req,res,'search');
+        if (offset > 91) {
+            offset = 91;
+        } else if (offset < 1) {
+            offset = 1;
+        }
+        
+        searchAdd(req,res,query);
         $.getJSON("https://www.googleapis.com/customsearch/v1?key=" + password[0] + "&cx=" + password[1] + "&searchType=image&q=" + query + "&start=" + offset, function(data) {
-            
-            
-            $(".condition").html(data.weather[0].main)
-            $(".location").html(data.name)
-            $(".temp").html(Math.floor(data.main.temp) + '&deg; ' + showUnit[unitID])
-            $(".pic").attr('src', 'http://openweathermap.org/img/w/' + data.weather[0].icon + '.png').show()
+            write(req,res,data);
         });
     };
     
     //Get parameters from URL, http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-    function getParameterByName(req, name) {
-        var url = req.URL;
+    function getParameterByName(req, res, name) {
+        var url = req.url;
         name = name.replace(/[\[\]]/g, "\\$&");
         var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
             results = regex.exec(url);
@@ -33,13 +35,18 @@ function getter(app, db){
         return decodeURIComponent(results[2].replace(/\+/g, " "));
     }
     
-    //Write image results to DB
-    function write(data){
-        
+    //Write image results to DB, then print that shizzle
+    function write(req,res,data){
+        //First, delete
+        imageCollection.remove({});
+        for (var each in data.items) {
+            imageCollection.insert({link: data.items[each].link, title: data.items[each].title, context: data.items[each].image.contextLink})
+        }
+        res.send(imageCollection);
     }
     
     //Write search to DB
-    function searchAdd(query){
+    function searchAdd(req,res,query){
         var date = new Date();
         searchCollection.update(
            { _id: 1 },

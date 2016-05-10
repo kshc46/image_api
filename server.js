@@ -9,7 +9,6 @@ var express = require('express'),
 var app = express();
 var password = pass();
 
-
 var db = mongo.db(process.env.MONGODB_URI || password[2]);
 
 app.use('/public', express.static(process.cwd() + '/public'));
