@@ -17,7 +17,7 @@ app.use('/controllers', express.static(process.cwd() + '/app/controllers'));
 db.createCollection("searchCollection", {
     capped: true,
     size: 5242880,
-    max: 5000
+    max: 10
 });
 
 routes(app, db);

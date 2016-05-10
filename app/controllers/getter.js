@@ -6,6 +6,12 @@ function getter(app, db){
 
     app.get('/api/imagesearch/', imageAPICall);
     app.get('/search/', searchHistory);
+    app.get('/delete/', deleteSearch);
+    
+    function deleteSearch(req,res){
+        searchCollection.remove();
+        res.send('Done sucka!');
+    }
     
     var request = require('request');
     
@@ -55,47 +61,18 @@ function getter(app, db){
     //Write search to DB
     function searchAdd(req,res,query){
         var date = new Date();
-        searchCollection.insert({type: 'search', term: query, when: date.toUTCString()});
-       
-        searchCollection.find({type : 'search'}).toArray(function(err,data){
-            if (err) {
-                console.log("Error: ", err)
-            };
-            var count = 0;
-            for (var each in data) {
-                count++;
-            }
-            
-            if (count > 10) {
-                //Pop an entry
-            }
-            console.log(data)
-            /*if (data.search[10]) {
-                dbPop();
-            }*/
-        })
+        searchCollection.insert({term: query, when: date.toUTCString()});
     }
     
     //Display search history
-    function searchHistory(){
-        searchCollection.find({type : 'search'}).toArray(function(err,data){
+    function searchHistory(req,res){
+        searchCollection.find().toArray(function(err,data){
             if (err) {
                 console.log("Error: ", err)
             };
-            console.log(data)
-            /*if (data.search[10]) {
-                dbPop();
-            }*/
+            res.send(data)
         })
     }
-    
-    //Removes last from search db array if needed
-    function dbPop() {
-        searchCollection.update( { _id: 1 }, { $pop: { search: 9 } } ) // or search : 1???
-    }
-
-    //Checks for entries to search db, if nothing it initializes
-    
 }
 
 module.exports = getter;
