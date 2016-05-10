@@ -3,13 +3,11 @@
 var express = require('express'),
     mongo = require('mongoskin'),
     routes = require('./app/routes/index.js'),
-    getter = require('./app/controllers/getter.js'),
-    pass = require(process.cwd() + '/public/pass.js');
+    getter = require('./app/controllers/getter.js');
 
 var app = express();
-var password = pass();
 
-var db = mongo.db(process.env.MONGODB_URI || password[2]);
+var db = mongo.db(process.env.MONGODB_URI);
 
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use('/controllers', express.static(process.cwd() + '/app/controllers'));

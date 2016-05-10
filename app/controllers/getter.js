@@ -2,7 +2,6 @@
 
 function getter(app, db){
     var searchCollection = db.collection('searchCollection');
-    var pass = require(process.cwd() + '/public/pass.js');
 
     app.get('/api/imagesearch/', imageAPICall);
     app.get('/search/', searchHistory);
@@ -17,7 +16,6 @@ function getter(app, db){
     
     //Calls API with client-specified query to get JSON from Google Custom Search (only images)
     function imageAPICall(req,res){
-        var password = pass();
         var offset = getParameterByName(req,res,'offset');
         var query = getParameterByName(req,res,'search');
         if (offset > 91) {
@@ -27,7 +25,7 @@ function getter(app, db){
         }
         
         searchAdd(req,res,query);
-        request("https://www.googleapis.com/customsearch/v1?key=" + password[0] + "&cx=" + password[1] + "&searchType=image&q=" + query + "&start=" + offset, function (error, response, body) {
+        request("https://www.googleapis.com/customsearch/v1?key=" + process.env.API_KEY + "&cx=" + process.env.CS_APP + "&searchType=image&q=" + query + "&start=" + offset, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 var data = JSON.parse(body);
                 write(req,res,data);
