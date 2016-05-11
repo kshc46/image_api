@@ -1,3 +1,1 @@
-This is a simple app that takes an address as an argument tagged on the end of
-my URL and returns a shortened code you can use to access the original address.
-I shorten URLS. Fancy.
+This is a simple app that calls the Google Custom Search api and returns information on images based on your search request. This code was used in development... please take a look at the Heroku Push branch for the running app.
